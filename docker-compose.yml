@@ -1,12 +1,11 @@
 # Файл docker-compose.yml
-version: '2.40.2'
 # Перечень volume
 volumes:
   pg_data:
   static:
 # Перечень контейнеров
 services:
-  # Имя и описание первого контейнера; имя выбирает разработчик. 
+  # Имя и описание первого контейнера; имя выбирает разработчик.
   # Это контейнер БД
   db:
     # Из какого образа запустить контейнер:
@@ -24,7 +23,8 @@ services:
     volumes:
       - static:/backend_static
     # Какие контейнеры нужно запустить до старта этого контейнера:
-
+    depends_on:
+      - db
   # Имя третьего контейнера. Это контейнер с фронтендом
   frontend:
     env_file: .env
@@ -32,10 +32,11 @@ services:
     command: cp -r /app/build/. /frontend_static/
     volumes:
       - static:/frontend_static
-
+    depends_on:
+      - backend
     # Добавляем новый контейнер: gateway
   gateway:
-    # Сбилдить и запустить образ, 
+    # Сбилдить и запустить образ,
     # описанный в Dockerfile в папке gateway
     build: ./gateway/
     volumes:
@@ -44,4 +45,7 @@ services:
     # перенаправление всех запросов с порта 8000 хоста
     # на порт 80 контейнера
     ports:
-      - 8000:80 
+      - "8000:80"
+    depends_on:
+      - backend
+      - frontend 
